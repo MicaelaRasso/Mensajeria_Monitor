@@ -29,5 +29,11 @@ public class PuertoDTO extends Contenido {
 	public void setAddress(String address) {
 		this.address = address;
 	}
+
+	@Override
+	public String toString() {
+		return " puerto: " + puerto + " address: " + address;
+	}
+	
 	
 }

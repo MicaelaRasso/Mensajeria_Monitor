@@ -8,6 +8,7 @@ public class ContenidoC extends Contenido {
 	private UsuarioDTO emisor;
 
 	public ContenidoC(UsuarioDTO emisor) {
+		super();
 		this.emisor = emisor;
 	}
 
@@ -17,6 +18,11 @@ public class ContenidoC extends Contenido {
 
 	public void setEmisor(UsuarioDTO emisor) {
 		this.emisor = emisor;
+	}
+
+	@Override
+	public String toString() {
+		return " emisor: " + emisor;
 	}
 
 }

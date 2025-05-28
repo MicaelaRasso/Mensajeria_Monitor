@@ -38,4 +38,13 @@ public class UsuarioDTO extends Contenido {
 	public PuertoDTO getPuerto() {
 		return puerto;
 	}
+
+	@Override
+	public String toString() {
+		if (puerto != null)
+			return " nombre: " + nombre + " puerto: " + puerto.toString() + " respuesta: " + respuesta;
+		else
+			return " nombre: " + nombre + " respuesta: " + respuesta;
+	}	
+	
 }

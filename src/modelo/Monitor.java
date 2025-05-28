@@ -52,7 +52,6 @@ public class Monitor {
 			System.out.println("[Monitor] Conectado desde "+socket.getInetAddress() + ":" + socket.getPort());
 
 			Paquete paq;
-			Paquete ack;
 
 			while ((paq = (Paquete) in.readObject()) != null) {
         		String op = paq.getOperacion();
@@ -76,7 +75,8 @@ public class Monitor {
     		socket.close();
         } catch (IOException e) {
         	//error en la conexion de los buffers
-			e.printStackTrace();
+        	System.out.println("Se cerro la conexion desde el monitor");
+//			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
 			//error en la lectura del objeto
 			e.printStackTrace();
@@ -117,9 +117,9 @@ public class Monitor {
 		   System.err.println("No hay servidores activos registrados");
 		   paq = new Paquete("obtenerSAR", null);
 		}else {
-		ServidorActivo s = backends.get(0);
-    	paq = new Paquete("obtenerSAR", new PuertoDTO(s.getPuerto(), s.getIp()));
-		}
+			ServidorActivo s = backends.get(0);
+	    	paq = new Paquete("obtenerSAR", new PuertoDTO(s.getPuerto(), s.getIp()));
+			}
 		try {
 			out.writeObject(paq);
         	out.flush();
@@ -128,7 +128,7 @@ public class Monitor {
 			if(reintento(paq) == null) {
 				System.err.println("No hay servidores disponibles");
 			}
-		}		
+		}
 	}	
 
 	/** Cada 5s hacemos ping a todos los backends para mantener vivos/muertos */

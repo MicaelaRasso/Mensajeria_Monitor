@@ -22,4 +22,9 @@ public class ListaContenido extends Contenido {
 		this.contenido = contenido;
 	}
 
+	@Override
+	public String toString() {
+		return " contenido: " + contenido.toString();
+	}
+
 }

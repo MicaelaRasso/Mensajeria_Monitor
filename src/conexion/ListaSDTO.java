@@ -21,4 +21,10 @@ public class ListaSDTO extends Contenido {
 		this.servidores = servidores;
 	}
 
+	@Override
+	public String toString() {
+		return "servidores: " + servidores.toString();
+	}
+
+	
 }

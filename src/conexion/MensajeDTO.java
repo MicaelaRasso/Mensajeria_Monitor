@@ -31,4 +31,9 @@ public class MensajeDTO extends ContenidoC {
 		this.receptor = receptor;
 	}
 
+	@Override
+	public String toString() {
+		return " mensaje:" + mensaje + " receptor: " + receptor;
+	}
+
 }

@@ -33,4 +33,11 @@ public class Paquete implements Serializable {
     public void setContenido(Contenido contenido) {
         this.contenido = contenido;
     }
+
+	@Override
+	public String toString() {
+		return "[Paquete] op: " + operacion + " contenido: " + contenido;
+	}
+    
+    
 }

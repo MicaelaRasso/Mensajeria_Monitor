@@ -21,6 +21,11 @@ public abstract class Contenido implements Serializable{
 	public void setFechaYHora(LocalDateTime fechaYHora) {
 		this.fechaYHora = fechaYHora;
 	}
+
+	@Override
+	public String toString() {
+		return "fyh:" + fechaYHora;
+	}
 	
 	
 
