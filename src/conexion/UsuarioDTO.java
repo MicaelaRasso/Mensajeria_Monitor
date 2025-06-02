@@ -6,20 +6,11 @@ public class UsuarioDTO extends Contenido {
 	 */
 	private static final long serialVersionUID = 1L;
 	private String nombre;
-	private PuertoDTO puerto;
 	private String respuesta;
-
-	public UsuarioDTO(String nombreC, PuertoDTO puerto) {
-		super();
-		this.nombre = nombreC;
-		this.puerto = puerto;
-		respuesta = "";
-	}
 	
 	public UsuarioDTO(String nombre) {
 		super();
 		this.nombre = nombre;
-		this.puerto = null;
 		respuesta = "";
 	}
 
@@ -35,16 +26,10 @@ public class UsuarioDTO extends Contenido {
 		return nombre;
 	}
 	
-	public PuertoDTO getPuerto() {
-		return puerto;
-	}
-
 	@Override
 	public String toString() {
-		if (puerto != null)
-			return " nombre: " + nombre + " puerto: " + puerto.toString() + " respuesta: " + respuesta;
-		else
 			return " nombre: " + nombre + " respuesta: " + respuesta;
-	}	
+	}
+	
 	
 }
