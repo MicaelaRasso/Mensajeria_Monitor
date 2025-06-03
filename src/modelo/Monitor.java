@@ -49,14 +49,15 @@ public class Monitor {
         	ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
     		out.flush();
         	ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-			System.out.println("[Monitor] Conectado desde "+socket.getInetAddress() + ":" + socket.getPort());
 
 			Paquete paq;
 
 			while ((paq = (Paquete) in.readObject()) != null) {
         		String op = paq.getOperacion();
-        		System.out.println(op);
-
+        		if(!backends.isEmpty()) {
+            		ServidorActivo sA = backends.get(0);
+        			System.out.println("Servidor activo: "+sA.getIp()+":"+sA.getPuerto());
+        		}
         		switch (op) {
         		case "obtenerSA": //llega desde el server
         			enviarServidorActivo(out); //recibe ack en reintento
@@ -64,6 +65,8 @@ public class Monitor {
         		case "registrarS": //llega desde el server
         			registrarServidor((PuertoDTO)paq.getContenido());
         	    	enviarListaDeServidores(out);  //recibe ack en reintento
+        	    	dormir(1000);
+        	    	actualizarServidores();
         			break;
         		case "obtenerS":
         			enviarListaDeServidores(out);  //recibe ack en reintento
@@ -75,7 +78,7 @@ public class Monitor {
     		socket.close();
         } catch (IOException e) {
         	//error en la conexion de los buffers
-        	System.out.println("Se cerro la conexion desde el monitor");
+//        	System.out.println("Se cerro la conexion desde el monitor");
 //			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
 			//error en la lectura del objeto
@@ -83,7 +86,29 @@ public class Monitor {
 		}
     }    
     
-    private void enviarListaDeServidores(ObjectOutputStream out) {
+    private void dormir(int i) {
+    	try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {}
+	}
+
+	private void actualizarServidores() {
+    	ListaSDTO lSDTO = new ListaSDTO();
+    	PuertoDTO pDTO;
+    	ArrayList<PuertoDTO> nuevaLista = new ArrayList<PuertoDTO>();
+    	for(ServidorActivo s: backends) {
+    		pDTO = new PuertoDTO(s.getPuerto(),s.getIp());
+    		nuevaLista.add(pDTO);
+    	}
+    	lSDTO.setServidores(nuevaLista);
+    	Paquete paquete = new Paquete("actualizarS",lSDTO);
+    	
+    	for(ServidorActivo s: backends) {
+    		s.actualizarServidores(paquete);
+    	}
+	}
+
+	private void enviarListaDeServidores(ObjectOutputStream out) {
 		Iterator<ServidorActivo> it = backends.iterator();
 		Paquete paq = new Paquete("obtenerSR", new ListaSDTO());
 		ArrayList<PuertoDTO> listaPuertos = new ArrayList<PuertoDTO>();
@@ -107,8 +132,22 @@ public class Monitor {
 	}
 
 	private void registrarServidor(PuertoDTO contenido) {
-    	ServidorActivo sA = new ServidorActivo(contenido.getAddress(), contenido.getPuerto());
-    	backends.add(sA);
+	    String nuevaIP = contenido.getAddress();
+	    int nuevoPuerto = contenido.getPuerto();
+
+	    // Verificar si ya existe un servidor con esa IP y puerto
+	    for (ServidorActivo s : backends) {
+	        if (s.getPuerto() == nuevoPuerto && s.getIp().equals(nuevaIP)) {
+	            System.out.println("[Monitor] Reconexión del servidor: " + nuevaIP + ":" + nuevoPuerto);
+	            s.markAlive();
+	            return;
+	        }
+	    }
+
+	    // Si no estaba, se registra como nuevo
+	    ServidorActivo nuevo = new ServidorActivo(nuevaIP, nuevoPuerto);
+	    backends.add(nuevo);
+	    System.out.println("[Monitor] Nuevo servidor registrado: " + nuevaIP + ":" + nuevoPuerto);
 	}
 
 	private void enviarServidorActivo(ObjectOutputStream out) {
@@ -132,39 +171,41 @@ public class Monitor {
 	}	
 
 	/** Cada 5s hacemos ping a todos los backends para mantener vivos/muertos */
-    private void runHeartbeat() {
-        for (ServidorActivo sc : backends) {
-            if (!sc.checkHeartbeat()) {
-                System.err.println("[PROXY] Backend no responde: " + sc);
-                sc.markDead();
-            } else {
-                sc.markAlive();
-            }
-        }
-    }
+	private void runHeartbeat() {
+	    for (ServidorActivo sc : new ArrayList<>(backends)) {
+	        if (!sc.checkHeartbeat()) {
+	            System.err.println("[Monitor] Backend no responde: " + sc);
+	            backends.remove(sc);
+	            backends.add(sc);      
+	            sc.markDead();
+	        } else {
+	            sc.markAlive();
+	        }
+	    }
+	}
+	private String reintento(Paquete paq) {
+	    if (backends.isEmpty()) return null;
 
-    private String reintento(Paquete paq) {
-        if (backends.isEmpty()) { return null; }
-        int cantServidores = backends.size();
-        for (int i = 0; i < cantServidores; i++) {
-            ServidorActivo sc = backends.get(0);
+	    List<ServidorActivo> copia = new ArrayList<>(backends);
 
-            if (!sc.isAlive()) {
-                System.err.println("[PROXY] Backend muerto, removiendo: " + sc);
-                backends.remove(0);
-                continue;
-            }
-            try {
-                // 5) Intentamos enviar (3 reintentos internos)
-                String resp = sc.sendAndAwaitAck(paq);
-                return resp;  
-            } catch (IOException e) {
-                System.err.println("[PROXY] Falló primer backend " + sc);
-                backends.remove(0);
-            }
-        }
-        return null;
-    }
+	    for (ServidorActivo sc : copia) {
+	        if (!sc.isAlive()) {
+	            System.err.println("[Monitor] Backend muerto, moviendo: " + sc);
+	            backends.remove(sc);
+	            backends.add(sc);
+	            continue;
+	        }
+	        try {
+	            String resp = sc.sendAndAwaitAck(paq);
+	            return resp; 
+	        } catch (IOException e) {
+	            System.err.println("[Monitor] Falló backend al enviar paquete: " + sc);
+	            backends.remove(sc);
+	            backends.add(sc);
+	        }
+	    }
+	    return null;
+	}
 
     
     

@@ -99,7 +99,19 @@ public class ServidorActivo {
 		public int getPuerto() {
 			return puerto;
 		}
-	    
-	    
 
+		public void actualizarServidores(Paquete paquete) {
+			try (Socket s = new Socket()) {
+				s.connect(new InetSocketAddress(ip, puerto), 1000);
+				s.setSoTimeout(1000);
+				ObjectOutputStream out = new ObjectOutputStream(s.getOutputStream());
+				out.flush();
+				ObjectInputStream in = new ObjectInputStream(s.getInputStream());
+				
+				out.writeObject(paquete);
+			} catch (IOException e) {
+				System.err.println("No se pudo conectar al servidor: " + ip + "@" + puerto);
+				e.printStackTrace();
+			}
+		}
 }
