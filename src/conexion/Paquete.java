@@ -39,5 +39,4 @@ public class Paquete implements Serializable {
 		return "[Paquete] op: " + operacion + " contenido: " + contenido;
 	}
     
-    
 }

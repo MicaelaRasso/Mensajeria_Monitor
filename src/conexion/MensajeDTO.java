@@ -7,12 +7,14 @@ public class MensajeDTO extends ContenidoC {
 	private static final long serialVersionUID = 1L;
 	private String mensaje;
 	private UsuarioDTO receptor;
+	private String encriptacion;
 	
 
-	public MensajeDTO(UsuarioDTO emisor, String mensaje, UsuarioDTO receptor) {
+	public MensajeDTO(UsuarioDTO emisor, String mensaje, UsuarioDTO receptor, String encriptacion) {
 		super(emisor);
 		this.mensaje = mensaje;
 		this.receptor = receptor;
+		this.setEncriptacion(encriptacion);
 	}
 
 	public String getMensaje() {
@@ -34,6 +36,14 @@ public class MensajeDTO extends ContenidoC {
 	@Override
 	public String toString() {
 		return " mensaje:" + mensaje + " receptor: " + receptor;
+	}
+
+	public String getEncriptacion() {
+		return encriptacion;
+	}
+
+	public void setEncriptacion(String encriptacion) {
+		this.encriptacion = encriptacion;
 	}
 
 }

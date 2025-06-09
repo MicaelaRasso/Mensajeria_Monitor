@@ -101,7 +101,7 @@ public class Monitor {
     		nuevaLista.add(pDTO);
     	}
     	lSDTO.setServidores(nuevaLista);
-    	Paquete paquete = new Paquete("actualizarS",lSDTO);
+    	Paquete paquete = new Paquete("actualizarS", lSDTO);
     	
     	for(ServidorActivo s: backends) {
     		s.actualizarServidores(paquete);
